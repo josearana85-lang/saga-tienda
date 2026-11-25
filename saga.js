@@ -682,3 +682,60 @@ var C=D.closest('.container'),o=document.createElement('div');o.id='sgc';o.inner
 }catch(e){console.error("saga bloque 16",e)}
 window.__sagaRestore&&window.__sagaRestore();
 window.__sagaLoaded=true;
+
+/* SAGA ficha Hola Mundo unificada */
+try{
+/* SAGA ficha Hola Mundo unificada: tarjetas "Elegí tu versión".
+   Se activa solo si el producto tiene una opción con los valores de VERS.
+   Los precios se leen de data-variants (no hay precios fijos en el código). */
+(function(){
+var VERS={
+ '30 hojas':{n:'Hola Mundo (30 hojas)',s:'El libro con el nombre grabado en la tapa'},
+ 'FULL':{n:'Hola Mundo FULL (50 hojas)',s:'Incluye Pack Embarazo y 10 hojas lisas',bd:'El más elegido',def:1},
+ 'FULL + 24 fotos':{n:'Hola Mundo FULL + 24 fotos',s:'Todo lo del FULL, más 24 fotos 10x10 impresas'}
+};
+var ORDEN=['30 hojas','FULL','FULL + 24 fotos'],ENVIO=120000,TRANSF=0.7;
+function money(n){return '$'+Math.round(n).toLocaleString('es-AR')}
+function run(){
+ var sp=document.getElementById('single-product');if(!sp||document.getElementById('sgv'))return;
+ var V;try{V=JSON.parse(sp.getAttribute('data-variants'))}catch(e){return}
+ if(!V||!V.length)return;
+ var k=-1;for(var i=0;i<3;i++){if(V.some(function(v){return VERS[v['option'+i]]})){k=i;break}}
+ if(k<0)return;
+ var form=document.getElementById('product_form');if(!form)return;
+ var sel=form.querySelector('select[name="variation['+k+']"]');if(!sel)return;
+ var css='#sgv{margin:4px 0 18px}#sgv .sgv-t{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#7a6d66;margin:0 0 8px}#sgv .sgv-o{position:relative;display:flex;gap:12px;align-items:flex-start;border:1px solid #d9cfc8;border-radius:10px;padding:12px 14px;margin-bottom:8px;background:#fff;cursor:pointer;transition:border-color .15s,box-shadow .15s}#sgv .sgv-o.on{border-color:#7B2D3B;box-shadow:0 0 0 1px #7B2D3B;background:#fdf9f7}#sgv .sgv-r{flex:0 0 18px;height:18px;border-radius:50%;border:1.5px solid #b9aba3;margin-top:2px;position:relative}#sgv .on .sgv-r{border-color:#7B2D3B}#sgv .on .sgv-r:after{content:"";position:absolute;inset:3px;border-radius:50%;background:#7B2D3B}#sgv .sgv-b{flex:1;min-width:0}#sgv .sgv-n{font-size:15px;color:#313131;font-weight:600;line-height:1.25}#sgv .sgv-s{font-size:12.5px;color:#7a6d66;margin-top:2px;line-height:1.35}#sgv .sgv-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#sgv .sgv-tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#E9DBD2;color:#313131}#sgv .sgv-tag.g{background:#e3efe8;color:#2f6b4c}#sgv .sgv-p{text-align:right;flex:0 0 auto}#sgv .sgv-pr{font-size:15px;color:#313131;font-weight:600;white-space:nowrap}#sgv .sgv-ls{font-size:11.5px;color:#9b8f88;text-decoration:line-through}#sgv .sgv-tr{font-size:12px;color:#3A7D5C;white-space:nowrap;margin-top:2px}#sgv .sgv-bd{position:absolute;top:-9px;left:14px;background:#7B2D3B;color:#fff;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:20px}.sgv-hide{display:none!important}';
+ var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+ /* ocultar el selector nativo de Versión (select y botones) */
+ var grp=sel.closest('.js-product-variants-group')||sel.closest('.form-group')||sel.parentNode;
+ if(grp&&!grp.querySelector('[name^="variation"]:not([name="variation['+k+']"])'))grp.classList.add('sgv-hide');
+ var w=document.createElement('div');w.id='sgv';
+ var vars=form.querySelector('.js-product-variants');(vars||form.firstChild).parentNode.insertBefore(w,vars||form.firstChild);
+ function pick(ver){
+  /* variante de esa versión con los demás valores actuales */
+  var want={};for(var i=0;i<3;i++){var s=form.querySelector('select[name="variation['+i+']"]');if(s)want[i]=s.value}
+  want[k]=ver;
+  var m=V.filter(function(v){for(var i in want){if(v['option'+i]!=null&&v['option'+i]!==want[i])return false}return true})[0];
+  if(!m)m=V.filter(function(v){return v['option'+k]===ver&&v.available})[0]||V.filter(function(v){return v['option'+k]===ver})[0];
+  return m}
+ function draw(){
+  var on=sel.value;
+  w.innerHTML='<div class="sgv-t">Elegí tu versión</div>'+ORDEN.filter(function(o){return V.some(function(v){return v['option'+k]===o})}).map(function(o){
+   var c=VERS[o],v=pick(o)||{},p=v.price_number||0,l=v.compare_at_price_number||0,tags=[];
+   if(l>p)tags.push('<span class="sgv-tag">Ahorrás '+money(l-p)+'</span>');
+   if(p>=ENVIO)tags.push('<span class="sgv-tag g">Envío gratis</span>');
+   return '<div class="sgv-o'+(o===on?' on':'')+'" data-v="'+o+'">'+(c.bd?'<span class="sgv-bd">'+c.bd+'</span>':'')+'<span class="sgv-r"></span><div class="sgv-b"><div class="sgv-n">'+c.n+'</div><div class="sgv-s">'+c.s+'</div>'+(tags.length?'<div class="sgv-tags">'+tags.join('')+'</div>':'')+'</div><div class="sgv-p">'+(l>p?'<div class="sgv-ls">'+money(l)+'</div>':'')+'<div class="sgv-pr">'+money(p)+'</div><div class="sgv-tr">'+money(p*TRANSF)+' transf.</div></div></div>'}).join('')}
+ function choose(o){
+  if(sel.value===o)return;
+  var b=form.querySelector('.js-insta-variant[data-option="'+o.replace(/"/g,'\\"')+'"]');
+  if(b&&grp&&grp.contains(b)){b.click()}else{sel.value=o;if(window.jQuery)jQuery(sel).trigger('change');else sel.dispatchEvent(new Event('change',{bubbles:true}))}
+ }
+ w.addEventListener('click',function(e){var o=e.target.closest('.sgv-o');if(o){choose(o.getAttribute('data-v'));setTimeout(draw,50)}});
+ form.addEventListener('change',function(){setTimeout(draw,50)});
+ /* por defecto, FULL (salvo que el link traiga una variante elegida) */
+ if(!/[?&]variant=/.test(location.search)){for(var d in VERS){if(VERS[d].def&&sel.value!==d&&V.some(function(v){return v['option'+k]===d})){choose(d);break}}}
+ draw();
+}
+document.readyState==='loading'?document.addEventListener('DOMContentLoaded',run):run();
+})();
+}catch(e){console.error("saga sgv",e)}
