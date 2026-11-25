@@ -739,3 +739,6 @@ function run(){
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',run):run();
 })();
 }catch(e){console.error("saga sgv",e)}
+
+/* SAGA links a fichas viejas del Hola Mundo -> ficha unificada */
+try{(function(){var N='/productos/combo-hola-mundo-edicion-full-1og7j/',M={'hola-mundo-beige-personalizado':N+'?variant=1646632302','combo-hola-mundo-edicion-full-con-fotos-m46zt':N+'?variant=1646632309'};function fix(r){(r||document).querySelectorAll('a[href*="/productos/"]').forEach(function(a){for(var k in M){if(a.getAttribute('href').indexOf('/productos/'+k)>-1){a.setAttribute('href',M[k]);break}}})}function go(){fix();new MutationObserver(function(m){m.forEach(function(x){x.addedNodes.forEach(function(n){if(n.querySelectorAll)fix(n)})})}).observe(document.body,{childList:true,subtree:true})}document.readyState==='loading'?document.addEventListener('DOMContentLoaded',go):go()})()}catch(e){console.error('saga links',e)}
