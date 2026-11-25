@@ -756,3 +756,55 @@ try{(function(){function run(){var ok=false;if(/^\/bebe(\/|$)/.test(location.pat
 [].forEach.call(document.querySelectorAll('.sgc-nota2'),function(p){if(p.textContent.indexOf('7 colores de tapa')>-1)p.textContent=p.textContent.replace('7 colores de tapa','4 colores de tapa')});
 [].forEach.call(document.querySelectorAll('.sgf-r'),function(p){if(p.textContent.indexOf('hay 7 colores')>-1)p.innerHTML=p.innerHTML.replace(/S\u00ed, hay <b>7 colores<\/b>: beige, verde, violeta, celeste, mostaza, gris y bord\u00f3\./,'S\u00ed, hoy hay <b>4 colores</b>: beige, gris, mostaza y bord\u00f3.')});return ok}
 var n=0,iv=setInterval(function(){if(run()||++n>40)clearInterval(iv)},250)})()}catch(e){console.error('saga bebe cat',e)}
+
+/* SAGA ficha Hola Mundo: bloque "Sumale a tu libro" (agregados segun la version) */
+try{(function(){
+var P={emb:{id:79706593,n:'Pack Embarazo',s:'Hojas para la dulce espera, semana a semana',p:45000},
+hoj:{id:61732119,n:'10 hojas lisas',s:'Para intercalar donde quieras',p:34000},
+fot:{id:55135863,n:'24 fotos 10x10 impresas',s:'Listas para pegar, papel fotográfico',p:58000}};
+var POR={'30 hojas':['emb','hoj','fot'],'FULL':['hoj','fot'],'FULL + 24 fotos':['hoj','fot']};
+var TRANSF=0.7;
+function money(n){return '$'+Math.round(n).toLocaleString('es-AR')}
+function run(){
+ var sgv=document.getElementById('sgv'),form=document.getElementById('product_form');
+ if(!sgv||!form||document.getElementById('sga'))return !!document.getElementById('sga');
+ var sp=document.getElementById('single-product'),V;try{V=JSON.parse(sp.getAttribute('data-variants'))}catch(e){return true}
+ var sel=form.querySelector('select[name="variation[0]"]');if(!sel)return true;
+ var css='#sga{margin:6px 0 18px;border:1px solid #e6ddd6;border-radius:10px;padding:14px;background:#fdfbf9}#sga .sga-t{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#7a6d66;margin:0 0 10px}#sga label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #f0e9e4;cursor:pointer;margin:0}#sga label:first-of-type{border-top:0}#sga input{width:18px;height:18px;margin-top:2px;accent-color:#7B2D3B;flex:0 0 18px}#sga .sga-b{flex:1;min-width:0}#sga .sga-n{font-size:14px;color:#313131;font-weight:600}#sga .sga-s{font-size:12px;color:#7a6d66}#sga .sga-p{font-size:14px;color:#313131;font-weight:600;white-space:nowrap}#sga .sga-tip{margin-top:10px;background:#e3efe8;color:#2f6b4c;border-radius:8px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:center;justify-content:space-between}#sga .sga-tip button{background:#2f6b4c;color:#fff;border:0;border-radius:20px;padding:6px 12px;font-size:12px;white-space:nowrap;cursor:pointer}#sga .sga-tot{margin-top:10px;padding-top:10px;border-top:1px solid #e6ddd6;display:flex;justify-content:space-between;align-items:baseline;font-size:14px;color:#313131}#sga .sga-tot b{font-size:16px}#sga .sga-tot span{color:#3A7D5C;font-size:12.5px;display:block;text-align:right}';
+ var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+ var box=document.createElement('div');box.id='sga';
+ var anchor=form.querySelector('.sgg')||sgv;anchor.parentNode.insertBefore(box,anchor.nextSibling);
+ /* sacar el bloque Combina de esta ficha */
+ [].forEach.call(document.querySelectorAll('.sg-combina-row'),function(r){var w=r.closest('section')||r.parentNode;(w||r).style.display='none'});
+ var chk={};
+ function price(ver){var c=form.querySelector('select[name="variation[1]"]'),cv=c?c.value:null;var m=V.filter(function(v){return v.option0===ver&&(!cv||v.option1===cv)})[0]||V.filter(function(v){return v.option0===ver})[0];return m?m.price_number:0}
+ function draw(){
+  var ver=sel.value,list=POR[ver]||[],base=price(ver);
+  Object.keys(chk).forEach(function(k){if(list.indexOf(k)<0)delete chk[k]});
+  var add=0;list.forEach(function(k){if(chk[k])add+=P[k].p});
+  var qb=form.querySelector('button.btn-primary.btn-big');if(qb)qb.style.display=add?'none':'';
+  var tip='';
+  if(ver==='30 hojas'&&chk.emb&&chk.hoj){var d=base+P.emb.p+P.hoj.p-price('FULL');if(d>0)tip='Con el FULL te sale '+money(d)+' menos, con lo mismo.<button type="button" data-go="FULL" data-off="emb,hoj">Cambiar al FULL</button>'}
+  if(ver==='FULL'&&chk.fot){var d2=base+P.fot.p-price('FULL + 24 fotos');if(d2>0)tip='Con FULL + 24 fotos ahorrás '+money(d2)+'.<button type="button" data-go="FULL + 24 fotos" data-off="fot">Cambiar</button>'}
+  box.innerHTML='<div class="sga-t">Sumale a tu libro</div>'+list.map(function(k){var x=P[k],nm=(k==='fot'&&ver==='FULL + 24 fotos')?'24 fotos 10x10 más':x.n;return '<label><input type="checkbox" data-k="'+k+'"'+(chk[k]?' checked':'')+'><span class="sga-b"><span class="sga-n">'+nm+'</span><br><span class="sga-s">'+x.s+'</span></span><span class="sga-p">+'+money(x.p)+'</span></label>'}).join('')+(tip?'<div class="sga-tip"><span>'+tip.replace(/<button[\s\S]*$/,'')+'</span>'+tip.slice(tip.indexOf('<button'))+'</div>':'')+(add?'<div class="sga-tot"><span style="color:#313131;font-size:14px;text-align:left">Total con agregados</span><div><b>'+money(base+add)+'</b><span>'+money((base+add)*TRANSF)+' por transferencia</span></div></div>':'');
+ }
+ box.addEventListener('change',function(e){var k=e.target.getAttribute('data-k');if(k){chk[k]=e.target.checked;draw()}});
+ box.addEventListener('click',function(e){var b=e.target.closest('button[data-go]');if(!b)return;(b.getAttribute('data-off')||'').split(',').forEach(function(k){delete chk[k]});var c=document.querySelector('#sgv .sgv-o[data-v="'+b.getAttribute('data-go')+'"]');if(c)c.click();setTimeout(draw,120)});
+ form.addEventListener('change',function(){setTimeout(draw,80)});
+ sgv.addEventListener('click',function(){setTimeout(draw,120)});
+ /* al agregar al carrito, sumar los agregados marcados */
+ var busy=false;
+ document.addEventListener('click',function(e){
+  var b=e.target.closest('.js-addtocart');if(!b||busy||b.getAttribute('data-sga-pass'))return;
+  var ks=Object.keys(chk).filter(function(k){return chk[k]});if(!ks.length)return;
+  var g=form.querySelector('[name="properties[Grabado personalizado]"]');if(g&&!g.value.trim())return;
+  e.preventDefault();e.stopImmediatePropagation();busy=true;
+  var url=form.getAttribute('action');
+  ks.reduce(function(pr,k){return pr.then(function(){var fd=new FormData();fd.append('add_to_cart',P[k].id);fd.append('quantity','1');return fetch(url,{method:'POST',body:fd,credentials:'same-origin'})})},Promise.resolve())
+  .then(function(){},function(err){console.error('saga agregados',err)})
+  .then(function(){busy=false;b.setAttribute('data-sga-pass','1');b.click();setTimeout(function(){b.removeAttribute('data-sga-pass')},500);chk={};setTimeout(draw,300)});
+ },true);
+ draw();return true;
+}
+var n=0,iv=setInterval(function(){if(run()||++n>40)clearInterval(iv)},250);
+})()}catch(e){console.error('saga agregados',e)}
